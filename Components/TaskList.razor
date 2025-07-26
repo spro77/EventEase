@@ -1,0 +1,55 @@
+@inject TaskService TaskService
+    
+    <div class="container mt-4">
+        <h2>My Tasks</h2>
+    
+        @if (tasks.Any())
+        {
+            <div class="mb-3">
+                <small class="text-muted">
+                    @completedCount of @tasks.Count tasks completed
+                </small>
+            </div>
+    
+            @foreach (var task in tasks)
+            {
+                <TaskItem Task="task"
+                          OnToggleComplete="HandleToggleComplete"
+                          OnDelete="HandleDelete" />
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <p class="mb-0">No tasks yet. Add your first task to get started!</p>
+            </div>
+        }
+    </div>
+    
+    @code {
+        private List<EventEase.Models.TaskItem> tasks = new();
+        private int completedCount => tasks.Count(t => t.IsCompleted);
+    
+        protected override void OnInitialized()
+        {
+            LoadTasks();
+        }
+    
+        private void LoadTasks()
+        {
+            tasks = TaskService.GetTasks();
+        }
+    
+        private void HandleToggleComplete(int taskId)
+        {
+            TaskService.ToggleComplete(taskId);
+            StateHasChanged();
+        }
+    
+        private void HandleDelete(int taskId)
+        {
+            TaskService.DeleteTask(taskId);
+            LoadTasks();
+            StateHasChanged();
+        }
+    }
