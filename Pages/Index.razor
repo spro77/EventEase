@@ -1,10 +1,49 @@
-@page "/"
+@page "/home"
 
-@inject NavigationManager Navigation
+<PageTitle>Home - EventEase</PageTitle>
 
-@code {
-    protected override void OnInitialized()
-    {
-        Navigation.NavigateTo("/tasks", true);
-    }
-}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 fw-bold text-primary mb-4">Welcome to EventEase</h1>
+            <p class="lead mb-4">
+                Your premier destination for corporate and social event management. 
+                Discover, register, and attend amazing events tailored for professionals and teams.
+            </p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="/events" class="btn btn-primary btn-lg px-4 me-md-2">Browse Events</a>
+                <a href="#about" class="btn btn-outline-secondary btn-lg px-4">Learn More</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5" id="about">
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <i class="bi bi-calendar-event display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Corporate Events</h5>
+                    <p class="card-text">Professional conferences, team building retreats, and networking opportunities.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <i class="bi bi-people display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Social Gatherings</h5>
+                    <p class="card-text">Community events, mixers, and social activities for meaningful connections.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0">
+                <div class="card-body">
+                    <i class="bi bi-clipboard-check display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Easy Registration</h5>
+                    <p class="card-text">Simple, secure registration process with instant confirmation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

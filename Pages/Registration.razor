@@ -1,0 +1,213 @@
+@page "/register/{id:int}"
+@inject EventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>Register - @(eventItem?.Name ?? "Event") - EventEase</PageTitle>
+
+@if (eventItem == null)
+{
+    <div class="container mt-4">
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">Event Not Found</h4>
+            <p>The event you're trying to register for doesn't exist.</p>
+            <hr>
+            <a href="/events" class="btn btn-primary">Browse All Events</a>
+        </div>
+    </div>
+}
+else if (eventItem.CurrentAttendees >= eventItem.MaxAttendees)
+{
+    <div class="container mt-4">
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">Event Full</h4>
+            <p>Sorry, this event has reached maximum capacity.</p>
+            <hr>
+            <a href="/events" class="btn btn-primary">Browse Other Events</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/events">Events</a></li>
+                <li class="breadcrumb-item"><a href="/events/@eventItem.Id">@eventItem.Name</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Register</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                @if (registrationSuccess)
+                {
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-check-circle-fill text-success display-4 mb-3"></i>
+                            <h2 class="card-title text-success">Registration Successful!</h2>
+                            <p class="card-text lead">Thank you for registering for <strong>@eventItem.Name</strong>.</p>
+                            <p class="card-text">You should receive a confirmation email shortly with event details and directions.</p>
+                            <hr>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="/events/@eventItem.Id" class="btn btn-outline-primary">View Event Details</a>
+                                <a href="/events" class="btn btn-primary">Browse More Events</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">Event Registration</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h5>@eventItem.Name</h5>
+                                    <p class="text-muted mb-1">
+                                        <i class="bi bi-calendar-event"></i> @eventItem.Date.ToString("MMM dd, yyyy - h:mm tt")
+                                    </p>
+                                    <p class="text-muted">
+                                        <i class="bi bi-geo-alt"></i> @eventItem.Location
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h4 class="text-primary">$@eventItem.Price.ToString("F2")</h4>
+                                </div>
+                            </div>
+
+                            <EditForm Model="registration" OnValidSubmit="HandleValidSubmit">
+                                <DataAnnotationsValidator />
+                                
+                                @if (!string.IsNullOrEmpty(errorMessage))
+                                {
+                                    <div class="alert alert-danger">
+                                        @errorMessage
+                                    </div>
+                                }
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Full Name *</label>
+                                        <InputText id="name" class="form-control" @bind-Value="registration.Name" placeholder="Enter your full name" />
+                                        <ValidationMessage For="() => registration.Name" class="text-danger" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email Address *</label>
+                                        <InputText id="email" type="email" class="form-control" @bind-Value="registration.Email" placeholder="Enter your email" />
+                                        <ValidationMessage For="() => registration.Email" class="text-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <InputText id="phone" type="tel" class="form-control" @bind-Value="registration.Phone" placeholder="Enter your phone number (optional)" />
+                                    <ValidationMessage For="() => registration.Phone" class="text-danger" />
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="terms" @bind="acceptTerms" />
+                                        <label class="form-check-label" for="terms">
+                                            I agree to the <a href="#" target="_blank">Terms and Conditions</a> and <a href="#" target="_blank">Privacy Policy</a> *
+                                        </label>
+                                    </div>
+                                    @if (showTermsError)
+                                    {
+                                        <div class="text-danger small">You must accept the terms and conditions to register.</div>
+                                    }
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">Cancel</button>
+                                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                        @if (isSubmitting)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        }
+                                        Register for Event
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private EventEase.Models.Event? eventItem;
+    private EventEase.Models.Registration registration = new();
+    private bool registrationSuccess = false;
+    private bool isSubmitting = false;
+    private bool acceptTerms = false;
+    private bool showTermsError = false;
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        eventItem = EventService.GetEventById(Id);
+        if (eventItem != null)
+        {
+            registration.EventId = eventItem.Id;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        errorMessage = string.Empty;
+        showTermsError = false;
+
+        if (!acceptTerms)
+        {
+            showTermsError = true;
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        // Simulate processing delay
+        await Task.Delay(1000);
+
+        try
+        {
+            bool success = EventService.RegisterForEvent(registration);
+            
+            if (success)
+            {
+                registrationSuccess = true;
+            }
+            else
+            {
+                errorMessage = "Registration failed. The event may be full or unavailable.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred during registration: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        if (eventItem != null)
+        {
+            Navigation.NavigateTo($"/events/{eventItem.Id}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/events");
+        }
+    }
+}

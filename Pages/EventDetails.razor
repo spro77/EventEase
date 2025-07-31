@@ -1,0 +1,131 @@
+@page "/events/{id:int}"
+@inject EventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>@(eventItem?.Name ?? "Event") - EventEase</PageTitle>
+
+@if (eventItem == null)
+{
+    <div class="container mt-4">
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">Event Not Found</h4>
+            <p>The event you're looking for doesn't exist or has been removed.</p>
+            <hr>
+            <a href="/events" class="btn btn-primary">Browse All Events</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/events">Events</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@eventItem.Name</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h1 class="card-title h2">@eventItem.Name</h1>
+                            <span class="badge bg-primary fs-6">$@eventItem.Price.ToString("F2")</span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Date & Time</h6>
+                                <p class="mb-2">
+                                    <i class="bi bi-calendar-event text-primary"></i>
+                                    @eventItem.Date.ToString("dddd, MMMM dd, yyyy")
+                                </p>
+                                <p>
+                                    <i class="bi bi-clock text-primary"></i>
+                                    @eventItem.Date.ToString("h:mm tt")
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Location</h6>
+                                <p>
+                                    <i class="bi bi-geo-alt text-primary"></i>
+                                    @eventItem.Location
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-muted">Description</h6>
+                            <p class="lead">@eventItem.Description</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-muted">Attendance</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@eventItem.CurrentAttendees of @eventItem.MaxAttendees attendees</span>
+                                <span class="text-muted">@(availableSpots) spots remaining</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @(eventItem.CurrentAttendees >= eventItem.MaxAttendees ? "bg-danger" : "bg-success")" 
+                                     role="progressbar" 
+                                     style="width: @(attendancePercentage)%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Register for this Event</h5>
+                        <p class="card-text text-muted">Secure your spot today!</p>
+                        
+                        @if (eventItem.CurrentAttendees >= eventItem.MaxAttendees)
+                        {
+                            <button class="btn btn-secondary btn-lg disabled w-100">
+                                <i class="bi bi-x-circle"></i> Event Full
+                            </button>
+                            <small class="text-muted d-block mt-2">This event has reached maximum capacity</small>
+                        }
+                        else
+                        {
+                            <a href="/register/@eventItem.Id" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-person-plus"></i> Register Now
+                            </a>
+                            <small class="text-muted d-block mt-2">@availableSpots spots remaining</small>
+                        }
+                        
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                                <i class="bi bi-arrow-left"></i> Back to Events
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private EventEase.Models.Event? eventItem;
+    private int availableSpots => eventItem?.MaxAttendees - eventItem?.CurrentAttendees ?? 0;
+    private double attendancePercentage => eventItem?.MaxAttendees > 0 ? 
+        (eventItem.CurrentAttendees * 100.0 / eventItem.MaxAttendees) : 0;
+
+    protected override void OnInitialized()
+    {
+        eventItem = EventService.GetEventById(Id);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/events");
+    }
+}

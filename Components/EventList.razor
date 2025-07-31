@@ -1,0 +1,43 @@
+@inject EventService EventService
+    
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">Upcoming Events</h1>
+            <p class="lead text-muted">Discover and register for exciting corporate and social events</p>
+        </div>
+    </div>
+
+    @if (events.Any())
+    {
+        <div class="row">
+            @foreach (var eventItem in events)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <EventCard Event="eventItem" />
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4 class="alert-heading">No Events Available</h4>
+            <p class="mb-0">Check back soon for upcoming events!</p>
+        </div>
+    }
+</div>
+    
+@code {
+    private List<EventEase.Models.Event> events = new();
+
+    protected override void OnInitialized()
+    {
+        LoadEvents();
+    }
+
+    private void LoadEvents()
+    {
+        events = EventService.GetEvents();
+    }
+}

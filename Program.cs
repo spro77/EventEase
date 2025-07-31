@@ -4,7 +4,8 @@ using EventEase;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
-// Register your TaskService
-builder.Services.AddSingleton<TaskService>();
+// Register your services
+builder.Services.AddSingleton<EventService>();
+builder.Services.AddSingleton<EventEase.Services.SessionService>();
 
 await builder.Build().RunAsync();
